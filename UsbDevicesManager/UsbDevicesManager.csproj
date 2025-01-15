@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="C:\dependencies\libusb-1.0.dll" Link="libusb-1.0.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LibUsbDotNet">
+      <HintPath>C:\dependencies\LibUsbDotNet.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
