@@ -31,7 +31,7 @@ namespace BatteryLevelTrayApp
 			_devicesManager = new DevicesManager();
 			_devicesManager.Initialize();
 			((INotifyCollectionChanged)_devicesManager.GetConnectedDevices()).CollectionChanged += Devices_CollectionChanged;
-			_ = new System.Threading.Timer(_ => UpdateIcon(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(60));
+			_ = new System.Threading.Timer(_ => UpdateIcon(), null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
 		}
 
 		//========================================================
@@ -43,6 +43,7 @@ namespace BatteryLevelTrayApp
 
 		private void Exit(object sender, EventArgs e)
 		{
+			_devicesManager.Dispose();
 			_trayIcon.Visible = false;
 			Application.Exit();
 		}
@@ -68,8 +69,10 @@ namespace BatteryLevelTrayApp
 				return Properties.Resources.battery_50;
 			else if (percentage >= 20)
 				return Properties.Resources.battery_25;
-			else
+			else if (percentage >= 0)
 				return Properties.Resources.battery_0;
+			else
+				return Properties.Resources.battery_unknown;
 		}
 	}
 }
