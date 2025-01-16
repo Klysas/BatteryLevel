@@ -49,7 +49,7 @@ namespace BatteryLevelTrayApp
 			_devicesManager = new DevicesManager();
 			_devicesManager.Initialize();
 			((INotifyCollectionChanged)_devicesManager.GetConnectedDevices()).CollectionChanged += Devices_CollectionChanged;
-			_ = new System.Threading.Timer(_ => UpdateIcon(), null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
+			_ = new System.Threading.Timer(_ => UpdateIcon(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(60));
 		}
 
 		//========================================================
