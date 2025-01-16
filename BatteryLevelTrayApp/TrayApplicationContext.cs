@@ -11,6 +11,8 @@ namespace BatteryLevelTrayApp
 		//========================================================
 
 		private readonly DevicesManager _devicesManager;
+		private readonly Form _hiddenForm; // For showing ToolTip
+		private readonly ToolTip _toolTip;
 		private readonly NotifyIcon _trayIcon;
 
 		//========================================================
@@ -19,6 +21,21 @@ namespace BatteryLevelTrayApp
 
 		public TrayApplicationContext()
 		{
+			_hiddenForm = new Form
+			{
+				ShowInTaskbar = false,
+				FormBorderStyle = FormBorderStyle.None,
+				StartPosition = FormStartPosition.Manual,
+				Size = new Size(1, 1),
+				Location = new Point(-2000, -2000)
+			};
+			_hiddenForm.Show(); // Necessary to make it a valid IWin32Window
+
+			_toolTip = new ToolTip
+			{
+				ToolTipTitle = "Devices:"
+			};
+
 			var menu = new ContextMenuStrip();
 			menu.Items.Add("Exit", null, onClick: Exit!);
 
@@ -27,6 +44,7 @@ namespace BatteryLevelTrayApp
 				Visible = true,
 				ContextMenuStrip = menu
 			};
+			_trayIcon.MouseClick += TrayIcon_Click;
 
 			_devicesManager = new DevicesManager();
 			_devicesManager.Initialize();
@@ -48,6 +66,16 @@ namespace BatteryLevelTrayApp
 			Application.Exit();
 		}
 
+		private void TrayIcon_Click(object? sender, MouseEventArgs e)
+		{
+			if (e.Button != MouseButtons.Left)
+				return;
+
+			_hiddenForm.Activate();
+			_toolTip.Show(string.Join('\n', _devicesManager.GetConnectedDevices().Select(d => $"{d.DisplayName} - {GetPrettyBatteryLevel(d.BatteryLevel)}"))
+						, _hiddenForm, _hiddenForm.PointToClient(Cursor.Position), 10000);
+		}
+
 		//========================================================
 		//	Methods
 		//========================================================
@@ -56,8 +84,11 @@ namespace BatteryLevelTrayApp
 		{
 			var lowestChargeDevice = _devicesManager.GetConnectedDevices().MinBy(d => d.BatteryLevel);
 			_trayIcon.Icon = lowestChargeDevice is null ? Properties.Resources.question_mark : GetIcon(lowestChargeDevice.BatteryLevel);
-			_trayIcon.Text = lowestChargeDevice is null ? "No supported devices found." : $"{lowestChargeDevice.DisplayName}: {lowestChargeDevice.BatteryLevel}%";
+			_trayIcon.Text = lowestChargeDevice is null ? "No supported devices found." : $"{lowestChargeDevice.DisplayName}: {GetPrettyBatteryLevel(lowestChargeDevice.BatteryLevel)}";
 		}
+
+		private static string GetPrettyBatteryLevel(int batteryLevel)
+			=> batteryLevel == Device.BatteryLevelUnknown ? "?" : $"{batteryLevel}%";
 
 		private static Icon GetIcon(int percentage)
 		{

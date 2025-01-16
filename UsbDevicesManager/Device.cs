@@ -13,7 +13,7 @@
 		//	Fields
 		//========================================================
 
-		protected const int BatteryLevelUnknown = -1;
+		public const int BatteryLevelUnknown = -1;
 
 		private Timer? _batteryRefreshTimer;
 
