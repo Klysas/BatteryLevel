@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="HidSharp" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="LibUsbDotNet">
       <HintPath>C:\dependencies\LibUsbDotNet.dll</HintPath>
     </Reference>
