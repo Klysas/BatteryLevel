@@ -1,12 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>Resources\battery_100.ico</ApplicationIcon>
+    <StartupObject>BatteryLevelTrayApp.Program</StartupObject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\battery_100.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\UsbDevicesManager\UsbDevicesManager.csproj" />
