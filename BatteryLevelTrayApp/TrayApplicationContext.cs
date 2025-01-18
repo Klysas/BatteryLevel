@@ -94,11 +94,11 @@ namespace BatteryLevelTrayApp
 		{
 			if (percentage >= 90)
 				return Properties.Resources.battery_100;
-			else if (percentage >= 70)
+			else if (percentage >= 65)
 				return Properties.Resources.battery_75;
-			else if (percentage >= 45)
+			else if (percentage >= 40)
 				return Properties.Resources.battery_50;
-			else if (percentage >= 20)
+			else if (percentage >= 15)
 				return Properties.Resources.battery_25;
 			else if (percentage >= 0)
 				return Properties.Resources.battery_0;
