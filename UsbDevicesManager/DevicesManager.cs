@@ -12,7 +12,6 @@ namespace UsbDevicesManager
 
 		private Timer? _refreshDevicesListTimer;
 		private readonly ObservableCollection<Device> _supportedConnectedDevices;
-		private readonly UsbContext _usbContext;
 
 		//========================================================
 		//	Constructors
@@ -21,7 +20,6 @@ namespace UsbDevicesManager
 		public DevicesManager()
 		{
 			_supportedConnectedDevices = new ObservableCollection<Device>();
-			_usbContext = new UsbContext();
 		}
 
 		//========================================================
@@ -45,7 +43,6 @@ namespace UsbDevicesManager
 			_refreshDevicesListTimer?.Dispose();
 			_supportedConnectedDevices.ToList().ForEach(d => d.StopBatteryLevelRefresh());
 			_supportedConnectedDevices.Clear();
-			_usbContext.Dispose();
 		}
 
 		public void Initialize()
@@ -60,7 +57,8 @@ namespace UsbDevicesManager
 
 		private void RefreshDevicesList()
 		{
-			var connectedDevices = _usbContext.List();
+			using var usbContext = new UsbContext();
+			using var connectedDevices = usbContext.List();
 
 			foreach (var device in new List<Device>(_supportedConnectedDevices))
 			{
