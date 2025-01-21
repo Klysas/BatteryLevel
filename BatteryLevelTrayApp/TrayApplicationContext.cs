@@ -10,10 +10,15 @@ namespace BatteryLevelTrayApp
 		//	Fields
 		//========================================================
 
+		private const int TimeBetweenIconRefreshesInSeconds = 10;
+
 		private readonly DevicesManager _devicesManager;
 		private readonly Form _hiddenForm; // For showing ToolTip
+		private readonly Thread _iconRefreshthread;
 		private readonly ToolTip _toolTip;
 		private readonly NotifyIcon _trayIcon;
+
+		private bool _iconRefreshIsRunning = true;
 
 		//========================================================
 		//	Constructors
@@ -49,7 +54,19 @@ namespace BatteryLevelTrayApp
 			_devicesManager = new DevicesManager();
 			_devicesManager.Initialize();
 			((INotifyCollectionChanged)_devicesManager.GetConnectedDevices()).CollectionChanged += Devices_CollectionChanged;
-			_ = new System.Threading.Timer(_ => UpdateIcon(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(60));
+			_iconRefreshthread = new Thread(() =>
+			{
+				while (_iconRefreshIsRunning)
+				{
+					try
+					{
+						UpdateIcon();
+						Thread.Sleep(TimeSpan.FromSeconds(TimeBetweenIconRefreshesInSeconds));
+					}
+					catch (ThreadInterruptedException) { }
+				}
+			});
+			_iconRefreshthread.Start();
 		}
 
 		//========================================================
@@ -61,6 +78,9 @@ namespace BatteryLevelTrayApp
 
 		private void Exit(object sender, EventArgs e)
 		{
+			_iconRefreshIsRunning = false;
+			_iconRefreshthread.Interrupt();
+			_iconRefreshthread.Join();
 			_devicesManager.Dispose();
 			_trayIcon.Visible = false;
 			Application.Exit();
