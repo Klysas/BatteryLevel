@@ -56,6 +56,7 @@ namespace BatteryLevelTrayApp
 			((INotifyCollectionChanged)_devicesManager.GetConnectedDevices()).CollectionChanged += Devices_CollectionChanged;
 			_iconRefreshthread = new Thread(() =>
 			{
+				Thread.Sleep(1000); // Let devices get battery levels.
 				while (_iconRefreshIsRunning)
 				{
 					try
