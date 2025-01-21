@@ -21,6 +21,7 @@ namespace UsbDevicesManager
 		private const int UsbSetupPacketValue = 0x300;
 		private const int UsbSetupPacketIndex = 0x00;
 		private const int UsbReportLength = 90;
+		private const int StatusSuccess = 0x02;
 
 		private readonly int _transactionId;
 
@@ -67,7 +68,7 @@ namespace UsbDevicesManager
 					return;
 				}
 
-				BatteryLevel = (int)(res[9] / 255.0 * 100);
+				BatteryLevel = res[0] == StatusSuccess ? (int)(res[9] / 255.0 * 100) : BatteryLevelUnknown;
 			}
 			catch
 			{
