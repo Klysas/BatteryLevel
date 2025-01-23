@@ -25,6 +25,8 @@ namespace UsbDevicesManager
 
 		private readonly int _transactionId;
 
+		private int _skippedFailedBatteryLevelRefreshesCount = 0;
+
 		//========================================================
 		//	Constructors
 		//========================================================
@@ -42,7 +44,7 @@ namespace UsbDevicesManager
 		//	Protected
 		//--------------------------------------------------------
 
-		protected override void RefreshBatteryLevel()
+		protected override void RefreshBatteryLevel(int skipFailedBatteryLevelRefreshesCount)
 		{
 			try
 			{
@@ -68,7 +70,20 @@ namespace UsbDevicesManager
 					return;
 				}
 
-				BatteryLevel = res[0] == StatusSuccess ? (int)(res[9] / 255.0 * 100) : BatteryLevelUnknown;
+				if (res[0] == StatusSuccess)
+				{
+					BatteryLevel = (int)(res[9] / 255.0 * 100);
+					return;
+				}
+
+				if (skipFailedBatteryLevelRefreshesCount > _skippedFailedBatteryLevelRefreshesCount)
+				{
+					_skippedFailedBatteryLevelRefreshesCount++;
+					return;
+				}
+
+				_skippedFailedBatteryLevelRefreshesCount = 0;
+				BatteryLevel = BatteryLevelUnknown;
 			}
 			catch
 			{

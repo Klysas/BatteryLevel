@@ -14,6 +14,8 @@ namespace UsbDevicesManager
 		private readonly int _usagePage;
 		private readonly int _usage;
 
+		private int _skippedFailedBatteryLevelRefreshesCount = 0;
+
 		//========================================================
 		//	Constructors
 		//========================================================
@@ -32,7 +34,7 @@ namespace UsbDevicesManager
 		//	Protected
 		//--------------------------------------------------------
 
-		protected override void RefreshBatteryLevel()
+		protected override void RefreshBatteryLevel(int skipFailedBatteryLevelRefreshesCount)
 		{
 			try
 			{
@@ -65,6 +67,11 @@ namespace UsbDevicesManager
 				hidStream.ReadTimeout = 250;
 				hidStream.Write(GenerateBatteryLevelRequestMessage());
 
+				/**
+				 * If device is online, then first 3 bytes are the same.
+				 * If device is sleeping, then first 3 bytes returned are [0x02, 0xFF, 0xAA].
+				 * Indexes 6 and 11 seem to hold battery level.
+				 **/
 				var result = new byte[MessageLength];
 				int bytesRead = hidStream.Read(result);
 
@@ -74,12 +81,20 @@ namespace UsbDevicesManager
 					return;
 				}
 
-				/**
-				 * If device is online, then first 3 bytes are the same.
-				 * If device is sleeping, then first 3 bytes returned are [0x02, 0xFF, 0xAA].
-				 * Indexes 6 and 11 seem to hold battery level.
-				 **/
-				BatteryLevel = result[1] == 0xFF ? BatteryLevelUnknown : result[6];
+				if (result[1] == 0x12)
+				{
+					BatteryLevel = result[6];
+					return;
+				}
+
+				if (skipFailedBatteryLevelRefreshesCount > _skippedFailedBatteryLevelRefreshesCount)
+				{
+					_skippedFailedBatteryLevelRefreshesCount++;
+					return;
+				}
+
+				_skippedFailedBatteryLevelRefreshesCount = 0;
+				BatteryLevel = BatteryLevelUnknown;
 			}
 			catch
 			{

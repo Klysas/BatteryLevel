@@ -35,9 +35,12 @@
 		//	Public
 		//--------------------------------------------------------
 
-		public void StartBatteryLevelRefresh(int timeBetweenRefreshesInSeconds)
+		public void StartBatteryLevelRefresh(int timeBetweenRefreshesInSeconds, int skipFailedBatteryLevelRefreshesCount = 3)
 		{
-			_batteryRefreshTimer = new Timer(_ => RefreshBatteryLevel(), null, TimeSpan.Zero, TimeSpan.FromSeconds(timeBetweenRefreshesInSeconds));
+			if (timeBetweenRefreshesInSeconds < 1) throw new ArgumentException("Value should be 1 or higher.", nameof(timeBetweenRefreshesInSeconds));
+			if (skipFailedBatteryLevelRefreshesCount < 0) throw new ArgumentException("Value should be 0 or higher.", nameof(skipFailedBatteryLevelRefreshesCount));
+
+			_batteryRefreshTimer = new Timer(_ => RefreshBatteryLevel(skipFailedBatteryLevelRefreshesCount), null, TimeSpan.Zero, TimeSpan.FromSeconds(timeBetweenRefreshesInSeconds));
 		}
 
 		public void StopBatteryLevelRefresh()
@@ -50,6 +53,6 @@
 		//	Protected
 		//--------------------------------------------------------
 
-		protected abstract void RefreshBatteryLevel();
+		protected abstract void RefreshBatteryLevel(int skipFailedBatteryLevelRefreshesCount);
 	}
 }
