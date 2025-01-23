@@ -71,7 +71,7 @@ namespace UsbDevicesManager
 
 			foreach (var device in connectedDevices)
 			{
-				var supportedDevice = SupportedDevices.All.FirstOrDefault(d => d.VendorID == device.Info.VendorId && d.ProductID == device.Info.ProductId);
+				var supportedDevice = SupportedDevices.All.FirstOrDefault(d => d.VendorID == device.VendorId && d.ProductID == device.ProductId);
 				if (supportedDevice != null && !_supportedConnectedDevices.Contains(supportedDevice))
 				{
 					_supportedConnectedDevices.Add(supportedDevice);
