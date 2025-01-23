@@ -26,16 +26,8 @@ namespace BatteryLevelTrayApp
 
 		public TrayApplicationContext()
 		{
-			_hiddenForm = new Form
-			{
-				ShowInTaskbar = false,
-				FormBorderStyle = FormBorderStyle.None,
-				StartPosition = FormStartPosition.Manual,
-				Size = new Size(1, 1),
-				Location = new Point(-2000, -2000)
-			};
+			_hiddenForm = new HiddenForm();
 			_hiddenForm.Show(); // Necessary to make it a valid IWin32Window
-
 			_toolTip = new ToolTip
 			{
 				ToolTipTitle = "Devices:"
@@ -125,6 +117,33 @@ namespace BatteryLevelTrayApp
 				return Properties.Resources.battery_0;
 			else
 				return Properties.Resources.battery_unknown;
+		}
+
+		//========================================================
+		//	Classes
+		//========================================================
+
+		private class HiddenForm : Form
+		{
+			public HiddenForm()
+				: base()
+			{
+				ShowInTaskbar = false;
+				FormBorderStyle = FormBorderStyle.None;
+				StartPosition = FormStartPosition.Manual;
+				Size = new Size(1, 1);
+				Location = new Point(-2000, -2000);
+			}
+
+			protected override CreateParams CreateParams
+			{
+				get
+				{
+					var cp = base.CreateParams;
+					cp.ExStyle |= 0x80; // WS_EX_TOOLWINDOW - Makes the form a tool window(doesn't show up in "Alt + Tab" list)
+					return cp;
+				}
+			}
 		}
 	}
 }
