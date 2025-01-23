@@ -31,7 +31,8 @@ namespace UsbDevicesManager
 		//	Constructors
 		//========================================================
 
-		public RazerDevice(int transactionId)
+		public RazerDevice(int transactionId, Device? alternativeDevice = null)
+			: base(alternativeDevice)
 		{
 			_transactionId = transactionId;
 			ManufacturerName = "Razer";
@@ -73,6 +74,12 @@ namespace UsbDevicesManager
 				if (res[0] == StatusSuccess)
 				{
 					BatteryLevel = (int)(res[9] / 255.0 * 100);
+					return;
+				}
+
+				if (_alternativeDevice?.BatteryLevel != BatteryLevelUnknown)
+				{
+					BatteryLevel = _alternativeDevice!.BatteryLevel;
 					return;
 				}
 

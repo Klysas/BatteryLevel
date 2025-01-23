@@ -15,7 +15,18 @@
 
 		public const int BatteryLevelUnknown = -1;
 
+		protected Device? _alternativeDevice;
+
 		private Timer? _batteryRefreshTimer;
+
+		//========================================================
+		//	Constructors
+		//========================================================
+
+		public Device(Device? alternativeDevice)
+		{
+			_alternativeDevice = alternativeDevice;
+		}
 
 		//========================================================
 		//	Properties

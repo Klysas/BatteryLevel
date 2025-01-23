@@ -20,7 +20,8 @@ namespace UsbDevicesManager
 		//	Constructors
 		//========================================================
 
-		public AsusDevice(int usagePage, int usage)
+		public AsusDevice(int usagePage, int usage, Device? alternativeDevice = null)
+			: base(alternativeDevice)
 		{
 			_usagePage = usagePage;
 			_usage = usage;
@@ -84,6 +85,12 @@ namespace UsbDevicesManager
 				if (result[1] == 0x12)
 				{
 					BatteryLevel = result[6];
+					return;
+				}
+
+				if (_alternativeDevice?.BatteryLevel != BatteryLevelUnknown)
+				{
+					BatteryLevel = _alternativeDevice!.BatteryLevel;
 					return;
 				}
 
