@@ -15,9 +15,9 @@
 
 		public const int BatteryLevelUnknown = -1;
 
-		protected Device? _alternativeDevice;
-
+		private readonly Device? _alternativeDevice;
 		private Timer? _batteryRefreshTimer;
+		private int _skippedFailedBatteryLevelRefreshesCount = 0;
 
 		//========================================================
 		//	Constructors
@@ -32,7 +32,7 @@
 		//	Properties
 		//========================================================
 
-		public int BatteryLevel { get; protected set; } = BatteryLevelUnknown;
+		public int BatteryLevel { get; private set; } = BatteryLevelUnknown;
 		public DeviceType DeviceType { get; init; }
 		public string DisplayName { get; init; } = string.Empty;
 		public string ManufacturerName { get; init; } = string.Empty;
@@ -64,6 +64,39 @@
 		//	Protected
 		//--------------------------------------------------------
 
-		protected abstract void RefreshBatteryLevel(int skipFailedBatteryLevelRefreshesCount);
+		protected abstract bool TryRetrieveBatteryLevelValue(out int batteryLevel);
+
+		//--------------------------------------------------------
+		//	Private
+		//--------------------------------------------------------
+
+		private void RefreshBatteryLevel(int skipFailedBatteryLevelRefreshesCount)
+		{
+			try
+			{
+				if (TryRetrieveBatteryLevelValue(out int batteryLevel))
+				{
+					BatteryLevel = batteryLevel;
+					_skippedFailedBatteryLevelRefreshesCount = 0;
+					return;
+				}
+			}
+			catch { }
+
+			if (_alternativeDevice?.BatteryLevel != BatteryLevelUnknown)
+			{
+				BatteryLevel = _alternativeDevice!.BatteryLevel;
+				return;
+			}
+
+			if (skipFailedBatteryLevelRefreshesCount > _skippedFailedBatteryLevelRefreshesCount)
+			{
+				_skippedFailedBatteryLevelRefreshesCount++;
+				return;
+			}
+
+			_skippedFailedBatteryLevelRefreshesCount = 0;
+			BatteryLevel = BatteryLevelUnknown;
+		}
 	}
 }

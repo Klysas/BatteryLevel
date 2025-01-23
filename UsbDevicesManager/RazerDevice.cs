@@ -25,8 +25,6 @@ namespace UsbDevicesManager
 
 		private readonly int _transactionId;
 
-		private int _skippedFailedBatteryLevelRefreshesCount = 0;
-
 		//========================================================
 		//	Constructors
 		//========================================================
@@ -45,57 +43,38 @@ namespace UsbDevicesManager
 		//	Protected
 		//--------------------------------------------------------
 
-		protected override void RefreshBatteryLevel(int skipFailedBatteryLevelRefreshesCount)
+		protected override bool TryRetrieveBatteryLevelValue(out int batteryLevel)
 		{
-			try
+			using var context = new UsbContext();
+			var usbDevice = context.Find(d => d.VendorId == VendorID && d.ProductId == ProductID);
+
+			if (usbDevice == null)
 			{
-				using var context = new UsbContext();
-				var usbDevice = context.Find(d => d.VendorId == VendorID && d.ProductId == ProductID);
-
-				if (usbDevice == null)
-				{
-					BatteryLevel = BatteryLevelUnknown;
-					return;
-				}
-
-				usbDevice.Open();
-				var msg = GenerateMessage(_transactionId);
-				SendControlMsg(usbDevice, msg, 500);
-				var res = ReadResponseMsg(usbDevice);
-				usbDevice.Close();
-				usbDevice.Dispose();
-
-				if (res == null)
-				{
-					BatteryLevel = BatteryLevelUnknown;
-					return;
-				}
-
-				if (res[0] == StatusSuccess)
-				{
-					BatteryLevel = (int)(res[9] / 255.0 * 100);
-					return;
-				}
-
-				if (_alternativeDevice?.BatteryLevel != BatteryLevelUnknown)
-				{
-					BatteryLevel = _alternativeDevice!.BatteryLevel;
-					return;
-				}
-
-				if (skipFailedBatteryLevelRefreshesCount > _skippedFailedBatteryLevelRefreshesCount)
-				{
-					_skippedFailedBatteryLevelRefreshesCount++;
-					return;
-				}
-
-				_skippedFailedBatteryLevelRefreshesCount = 0;
-				BatteryLevel = BatteryLevelUnknown;
+				batteryLevel = BatteryLevelUnknown;
+				return false;
 			}
-			catch
+
+			usbDevice.Open();
+			var msg = GenerateMessage(_transactionId);
+			SendControlMsg(usbDevice, msg, 500);
+			var res = ReadResponseMsg(usbDevice);
+			usbDevice.Close();
+			usbDevice.Dispose();
+
+			if (res == null)
 			{
-				BatteryLevel = BatteryLevelUnknown;
+				batteryLevel = BatteryLevelUnknown;
+				return false;
 			}
+
+			if (res[0] == StatusSuccess)
+			{
+				batteryLevel = (int)(res[9] / 255.0 * 100);
+				return true;
+			}
+
+			batteryLevel = BatteryLevelUnknown;
+			return false;
 		}
 
 		//--------------------------------------------------------
