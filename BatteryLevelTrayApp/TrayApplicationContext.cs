@@ -10,11 +10,14 @@ namespace BatteryLevelTrayApp
 		//	Fields
 		//========================================================
 
+		private const int NotificationBatteryLevelThresholdChange = 5;
+		private const int NotificationStartingBatteryLevelThreshold = 15;
 		private const int TimeBetweenIconRefreshesInSeconds = 10;
 
 		private readonly DevicesManager _devicesManager;
 		private readonly Form _hiddenForm; // For showing ToolTip
 		private readonly Thread _iconRefreshthread;
+		private readonly Dictionary<string, int> _notifiedDevicesBatteryLevelThresholds = new();
 		private readonly ToolTip _toolTip;
 		private readonly NotifyIcon _trayIcon;
 
@@ -54,6 +57,7 @@ namespace BatteryLevelTrayApp
 					try
 					{
 						UpdateIcon();
+						CheckAndShowNotification();
 						Thread.Sleep(TimeSpan.FromSeconds(TimeBetweenIconRefreshesInSeconds));
 					}
 					catch (ThreadInterruptedException) { }
@@ -92,6 +96,29 @@ namespace BatteryLevelTrayApp
 		//========================================================
 		//	Methods
 		//========================================================
+
+		private void CheckAndShowNotification()
+		{
+			var connectedDevices = _devicesManager.GetConnectedDevices();
+			foreach (var connectedDevice in connectedDevices)
+			{
+				var deviceId = $"{connectedDevice.VendorID}{connectedDevice.ProductID}";
+				if (!_notifiedDevicesBatteryLevelThresholds.ContainsKey(deviceId))
+					_notifiedDevicesBatteryLevelThresholds[deviceId] = NotificationStartingBatteryLevelThreshold;
+			}
+
+			foreach (var connectedDevice in connectedDevices.OrderBy(d => d.BatteryLevel))
+			{
+				var deviceId = $"{connectedDevice.VendorID}{connectedDevice.ProductID}";
+				if (connectedDevice.BatteryLevel == Device.BatteryLevelUnknown) continue;
+				if (connectedDevice.BatteryLevel <= _notifiedDevicesBatteryLevelThresholds[deviceId])
+				{
+					_trayIcon.ShowBalloonTip(5000, "Low battery", $"{connectedDevice.DisplayName} is at {GetPrettyBatteryLevel(connectedDevice.BatteryLevel)}", ToolTipIcon.Warning);
+					_notifiedDevicesBatteryLevelThresholds[deviceId] = (connectedDevice.BatteryLevel - 1) / NotificationBatteryLevelThresholdChange * NotificationBatteryLevelThresholdChange;
+					break;
+				}
+			}
+		}
 
 		private void UpdateIcon()
 		{
